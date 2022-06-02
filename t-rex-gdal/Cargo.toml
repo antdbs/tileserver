@@ -1,0 +1,20 @@
+[package]
+name = "t-rex-gdal"
+version = "0.9.9"
+description = "vector tile server"
+repository = "https://github.com/t-rex-tileserver/t-rex"
+readme = "../README.md"
+license = "MIT"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+edition = "2018"
+workspace = ".."
+
+[lib]
+doctest = false
+
+[dependencies]
+gdal = "0.11"
+gdal-sys = "0.5"
+log = "0.4"
+tile-grid = { path = "../tile-grid" }
+t-rex-core = { path = "../t-rex-core" }

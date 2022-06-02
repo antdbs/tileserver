@@ -1,0 +1,44 @@
+[package]
+name = "t-rex-core"
+version = "0.9.9"
+description = "vector tile server"
+repository = "https://github.com/t-rex-tileserver/t-rex"
+readme = "../README.md"
+license = "MIT"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+# build.rs requires protoc in $PATH
+# build = "build.rs"
+build = false
+edition = "2018"
+workspace = ".."
+
+[lib]
+doctest = false
+
+[dependencies]
+toml = "0.5"
+native-tls = "0.2"
+r2d2 = "0.8"
+r2d2_postgres = "0.18"
+regex = "1"
+postgis = "0.9.0"
+postgres = "0.19"
+postgres-native-tls = "0.5"
+protobuf = "2.17"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+streaming-stats = "0.2.0"
+log = "0.4"
+flate2 = "1.0"
+tera = "1.7"
+rusoto_core = "0.42"
+rusoto_s3 = "0.42"
+rusoto_credential = "0.42"
+tile-grid = { path = "../tile-grid" }
+
+[dev-dependencies]
+curl = "0.4.6"
+
+[build-dependencies]
+protoc-rust = "2.17"

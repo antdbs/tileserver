@@ -1,0 +1,32 @@
+[package]
+name = "t-rex-service"
+version = "0.9.9"
+description = "vector tile server"
+repository = "https://github.com/t-rex-tileserver/t-rex"
+readme = "../README.md"
+license = "MIT"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+edition = "2018"
+workspace = ".."
+
+[lib]
+doctest = false
+
+[dependencies]
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+percent-encoding = "2.1"
+elementtree = "0.5"
+log = "0.4"
+num_cpus = "1.13"
+clap = "2.33"
+pbr = "1.0"
+tokio = { version = "1.4.0", features = ["full"] }
+futures-util = "0.3.8"
+tile-grid = { path = "../tile-grid" }
+t-rex-core = { path = "../t-rex-core" }
+t-rex-gdal = { path = "../t-rex-gdal", optional = true }
+
+[features]
+with-gdal = ["t-rex-gdal"]

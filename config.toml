@@ -1,0 +1,1063 @@
+[service.mvt]
+    viewer = true
+
+[[datasource]]
+    dbconn = "postgresql://postgres:12345@172.17.0.2:5432/postgres"
+    name = "dbconn"
+    default = true
+
+[grid]
+    predefined = "web_mercator"
+
+[grid.user]
+width = 256
+height = 256
+extent = { minx = -1000000, miny = 3087000, maxx = 3327000, maxy = 10000000 }
+srid = 2193
+units = "m"
+resolutions = [8960.0,4480.0,2240.0,1120.0,560.0,280.0,140.0,70.0,28.0,14.0,7.0,2.8,1.4,0.7,0.28,0.14,0.07]
+origin = "TopLeft"
+
+######### REGION CENTRE
+[[tileset]]
+    name = "france"
+    extent = [-0.29385, 46.48649, 3.45923, 49.19218]
+
+    ######### LANDUSE
+    [[tileset.layer]]
+        name = "landuse"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 11
+        maxzoom = 20
+        sql = """
+            SELECT way
+            FROM public.planet_osm_polygon
+            WHERE landuse = 'residential'
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "fill"
+            minzoom = 11
+            maxzoom = 20
+            [tileset.layer.style.paint]
+            fill-color = "#EDEEEA"
+
+    ######### GREENSPACE_PROTECTEDAREA
+    [[tileset.layer]]
+        name = "greenspace_protectedarea"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        simplify = true
+    [[tileset.layer.query]]
+        minzoom = 6
+        maxzoom = 10
+        sql = """
+            SELECT name, way_area, boundary, leisure, "natural", landuse, way
+            FROM public.planet_osm_polygon
+            WHERE (way_area >= 5000000 AND way && !bbox!)
+            AND (boundary = 'protected_area' OR leisure in('park', 'garden') OR leisure in('park', 'garden') OR "natural" = 'wood' OR landuse = 'forest')
+            """
+    [[tileset.layer.query]]
+        minzoom = 11
+        maxzoom = 12
+        sql = """
+            SELECT name, way_area, boundary, leisure, "natural", landuse, way
+            FROM public.planet_osm_polygon
+            WHERE (way_area >= 2000000 AND way && !bbox!)
+            AND (boundary = 'protected_area' OR leisure in('park', 'garden') OR leisure in('park', 'garden') OR "natural" = 'wood' OR landuse = 'forest')
+            """
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT name, boundary, leisure, "natural", landuse, way
+            FROM public.planet_osm_polygon
+            WHERE way && !bbox!
+            AND (boundary = 'protected_area' OR leisure in('park', 'garden') OR leisure in('park', 'garden') OR "natural" = 'wood' OR landuse = 'forest')
+            """
+    [tileset.layer.style]
+        type = "fill"
+        minzoom = 6
+        maxzoom = 20
+        [tileset.layer.style.paint]
+        fill-color = "rgba(220, 226, 218, 1)"
+
+    ######### WATER_OCEAN
+    [[tileset.layer]]
+        name = "water_ocean"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 0
+        maxzoom = 18
+        sql = """
+            SELECT name, place, way
+            FROM public.planet_osm_polygon
+            WHERE place in ('sea', 'ocean')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            minzoom = 0
+            maxzoom = 18
+            type = "fill"
+            [tileset.layer.style.paint]
+            fill-color = "#C2C8CA"
+
+    ######### WATER_CANAUX
+    [[tileset.layer]]
+        name = "water_canaux"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 20
+        sql = """
+            SELECT name, waterway, way
+            FROM public.planet_osm_line
+            WHERE waterway in('river','stream','canal')
+            AND way && !bbox!
+            """
+            [tileset.layer.style]
+            type = "line"
+            minzoom = 12
+            maxzoom = 20
+            [tileset.layer.style.paint]
+            line-color = "rgba(201, 215, 218, 1)"
+            line-width = 2
+
+    ######### WATER
+    [[tileset.layer]]
+        name = "water"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 7
+        maxzoom = 10
+        sql = """
+            SELECT name, water, way_area, way 
+            FROM public.planet_osm_polygon
+            WHERE water in ('river','stream','étang','basi','intermittent','mare','salt_pool','wastewater','etang','moat','basin','fishpond','piscine','lock','oxbow','pool','reservoir', 'waste_water','lake','canal','pond','well,_puits','yes','basni','ditch')
+            AND way_area >= 1000000
+            AND way && !bbox!
+            """
+    [[tileset.layer.query]]
+        minzoom = 11
+        maxzoom = 14
+        sql = """
+            SELECT name, water, way_area, way 
+            FROM public.planet_osm_polygon
+            WHERE water in ('river','stream','étang','basi','intermittent','mare','salt_pool','wastewater','etang','moat','basin','fishpond','piscine','lock','oxbow','pool','reservoir', 'waste_water','lake','canal','pond','well,_puits','yes','basni','ditch')
+            AND way_area >= 5000
+            AND way && !bbox!
+            """
+    [[tileset.layer.query]]
+        minzoom = 15
+        maxzoom = 20
+        sql = """
+            SELECT name, water, way 
+            FROM public.planet_osm_polygon
+            WHERE water in ('river','stream','étang','basi','intermittent','mare','salt_pool','wastewater','etang','moat','basin','fishpond','piscine','lock','oxbow','pool','reservoir', 'waste_water','lake','canal','pond','well,_puits','yes','basni','ditch')
+            AND way && !bbox!
+            """
+    [tileset.layer.style]
+        type = "fill"
+        minzoom = 7
+        maxzoom = 20
+        [tileset.layer.style.paint]
+        fill-color = "rgba(201, 215, 218, 1)"
+        fill-antialias = true
+
+    ######### BUILDING
+    [[tileset.layer]]
+        name = "buildings"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 14
+        maxzoom = 20
+        sql = """
+            SELECT way
+            FROM public.planet_osm_polygon
+            WHERE building IS NOT NULL
+            AND way && !bbox!
+            """
+        [tileset.layer.style]
+            type = "fill"
+            minzoom = 14
+            maxzoom = 20
+            [tileset.layer.style.paint]
+            fill-outline-color = "rgba(212, 212, 212, 1)"
+            fill-color = "rgba(226, 226, 226, 1)"
+
+    ######### RAILWAY
+    [[tileset.layer]]
+        name = "railway"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT railway , way FROM public.planet_osm_line
+            WHERE railway = 'rail' AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 13
+            maxzoom = 20
+
+            [tileset.layer.style.layout]
+            line-join = "round"
+            visibility = "visible"
+
+            [tileset.layer.style.paint]
+            line-color = "#dddddd"
+              
+            [tileset.layer.style.paint.line-width]
+            base = 1.3
+            stops = [{ in = 16, out = 3}, { in = 20, out = 7}]
+    [[tileset.layer]]
+        name = "railway_dashline"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT railway , way FROM public.planet_osm_line
+            WHERE railway = 'rail' AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 13
+            maxzoom = 20
+
+            [tileset.layer.style.layout]
+            line-join = "round"
+            visibility = "visible"
+
+            [tileset.layer.style.paint]
+            line-color = "#fafafa"
+            line-dasharray = [3, 3]
+              
+            [tileset.layer.style.paint.line-width]
+            base = 1.3
+            stops = [{ in = 16, out = 2}, { in = 20, out = 6}]
+
+    ######### HIGHWAY_PATH
+    [[tileset.layer]]
+        name = "highway_path"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('path', 'track', 'footway', 'cycleway', 'steps', 'corridor')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 13
+            maxzoom = 20
+            [tileset.layer.style.layout]
+            line-cap = "round"
+            line-join = "round"
+            visibility = "visible"
+            [tileset.layer.style.paint]
+            line-color = "rgba(255, 255, 255, 1)"
+            line-opacity = 0.9                
+            [tileset.layer.style.paint.line-width]
+            base = 1.2
+            stops = [{ in = 13, out = 1}, { in = 20, out = 10}]
+
+    ######### HIGHWAY_MINOR
+    [[tileset.layer]]
+        name = "highway_minor"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('residential','unclassified', 'service', 'living_street', 'service', 'pedestrian', 'bus_guideway', 'road', 'busway')
+            AND way && !bbox!
+            """
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 13
+            maxzoom = 20
+            [tileset.layer.style.layout]
+            line-cap = "round"
+            line-join = "round"
+            visibility = "visible"
+            [tileset.layer.style.paint]
+            line-color = "rgba(255, 255, 255, 1)"
+            line-opacity = 0.9    
+            [tileset.layer.style.paint.line-width]
+            base = 1.55
+            stops = [{ in = 13, out = 1.8}, { in = 20, out = 20}]
+
+    ######### HIGHWAY_MAJOR_CASING
+    [[tileset.layer]]
+        name = "highway_major_casing"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 14
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('primary','secondary','tertiary','trunk')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 12
+            maxzoom = 14
+
+            [tileset.layer.style.layout]
+            line-cap = "butt"
+            line-join = "miter"
+            visibility = "visible"
+
+            [tileset.layer.style.paint]
+            line-color = "rgb(213, 213, 213)"
+            line-dasharray = [12, 0]
+            
+            [tileset.layer.style.paint.line-width]
+            base = 1.3
+            stops = [{ in = 10, out = 3}, { in = 20, out = 23}] 
+
+    ######### HIGHWAY_MAJOR_INNER
+    [[tileset.layer]]
+        name = "highway_major_inner"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('primary','secondary','tertiary','trunk')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 12
+            maxzoom = 20
+
+            [tileset.layer.style.layout]
+            line-cap = "round"
+            line-join = "round"
+            visibility = "visible"
+
+            [tileset.layer.style.paint]
+            line-color = "#fff"
+
+            [tileset.layer.style.paint.line-width]
+            base = 1.3
+            stops = [{ in = 10, out = 2}, { in = 20, out = 20}]  
+
+    ######### HIGHWAY_MAJOR_SUBTLE    
+    [[tileset.layer]]
+        name = "highway_major_subtle"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 9
+        maxzoom = 10
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('primary','trunk')
+            AND way && !bbox!
+            """
+    [[tileset.layer.query]]
+        minzoom = 10
+        maxzoom = 11
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('primary','secondary','trunk')
+            AND way && !bbox!
+            """
+    [[tileset.layer.query]]
+        minzoom = 11
+        maxzoom = 12
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('primary','secondary','tertiary','trunk')
+            AND way && !bbox!
+            """
+    [tileset.layer.style]
+        type = "line"
+        minzoom = 9
+        maxzoom = 12
+        filter = ["all", ["==", "highway", "primary"]]
+
+        [tileset.layer.style.layout]
+        line-cap = "round"
+        line-join = "round"
+        visibility = "visible"
+
+        [tileset.layer.style.paint]
+        line-color = "hsla(0, 0%, 85%, 0.69)"
+        line-width = 2
+
+    ######### HIGHWAY_MOTORWAY_CASING
+    [[tileset.layer]]
+        name = "highway_motorway_casing"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 8
+        maxzoom = 14
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('motorway', 'motorway_link')
+            AND way && !bbox!
+            """
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 8
+            maxzoom = 14
+
+            [tileset.layer.style.layout]
+            line-cap = "butt"
+            line-join = "miter"
+            visibility = "visible"
+            
+            [tileset.layer.style.paint]
+            line-color = "rgb(213, 213, 213)"
+            line-dasharray = [2, 0]
+            line-opacity = 1    
+            
+            [tileset.layer.style.paint.line-width]
+            base = 1.4
+            stops = [{ in = 5.8, out = 0}, { in = 6, out = 3}, { in = 20, out = 40}]
+
+    ######### HIGHWAY_MOTORWAY_INNER
+    [[tileset.layer]]
+        name = "highway_motorway_inner"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 7
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('motorway', 'motorway_link')
+            AND way && !bbox!
+            """
+    
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 7
+            maxzoom = 20
+            
+            [tileset.layer.style.layout]
+            line-cap = "round"
+            line-join = "round"
+            visibility = "visible"
+            
+            [tileset.layer.style.paint.line-color]
+            base = 1
+            stops = [{ in = 7, out = "hsla(0, 0%, 85%, 0.53)"}, { in = 9, out = "#fff"}]
+            
+            [tileset.layer.style.paint.line-width]
+            base = 1.4
+            stops = [{ in = 7, out = 1}, { in = 9, out = 2}, { in = 20, out = 40}]
+
+    ######## HIGHWAY_MOTORWAY
+    [[tileset.layer]]
+        name = "highway_motorway"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 5
+        maxzoom = 7
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('motorway', 'motorway_link')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "line"
+            minzoom = 5
+            maxzoom = 7
+                
+            [tileset.layer.style.layout]
+            line-cap = "round"
+            line-join = "round"
+            visibility = "visible"
+            
+            [tileset.layer.style.paint]
+            line-color = "hsla(0, 0%, 85%, 0.53)"
+            
+            [tileset.layer.style.paint.line-width]
+            base = 1.4
+            stops = [{ in = 4, out = 2}, { in = 6, out = 1.3}]
+
+    ######## HIGHWAY_OTHER_NAME
+    [[tileset.layer]]
+        name = "highway_other_name"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 13
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('residential','unclassified', 'service', 'track')
+            AND way && !bbox!
+            """
+    
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 13
+            maxzoom = 20
+            filter = ["all", ["!=", "highway", "motorway"]]
+
+            [tileset.layer.style.layout]
+            text-field = "{name}"
+            symbol-avoid-edges = false
+            symbol-placement = "line"
+            symbol-spacing = 350
+            text-size = 8
+            text-pitch-alignment = "viewport"
+            text-rotation-alignment = "map"
+            symbol-z-order = "auto"
+            text-max-angle = 30
+            text-transform = "uppercase"
+
+            [tileset.layer.style.paint]
+            text-color = "rgb(77, 89, 105)"
+            text-halo-color = "#fff"
+            text-halo-width = 2
+            text-translate = [0, 0]
+    
+    ######## HIGHWAY_MOTORWAY_NAME
+    [[tileset.layer]]
+        name = "highway_motorway_name"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 8
+        maxzoom = 20
+        sql = """
+            SELECT highway, name, "ref", way
+            FROM public.planet_osm_line
+            WHERE highway in ('motorway', 'motorway_link')
+            AND way && !bbox!
+            """
+    
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 8
+            maxzoom = 20
+            filter = ["all", ["==", "highway", "motorway"]]
+
+            [tileset.layer.style.layout]
+            text-field = "{ref}"
+            symbol-placement = "line"
+            symbol-spacing = 350
+            text-size = 12
+            text-pitch-alignment = "viewport"
+            text-rotation-alignment = "viewport"
+                [tileset.layer.style.paint]
+            text-color = "rgb(77, 89, 105)"
+            text-halo-color = "hsl(0, 0%, 100%)"
+            text-halo-width = 2
+            text-translate = [0, 2]
+
+    ######### BOUNDARY
+    [[tileset.layer]]
+        name = "boundary"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 5
+        maxzoom = 11
+        sql = """
+            SELECT name, way, boundary
+            FROM public.planet_osm_polygon
+            WHERE admin_level::INTEGER = 6
+            AND boundary = 'administrative'
+            AND way && !bbox! 
+            """
+    [[tileset.layer.query]]
+        minzoom = 11
+        maxzoom = 18
+        sql = """
+            SELECT name, way, boundary
+            FROM public.planet_osm_polygon
+            WHERE admin_level::INTEGER in (8, 9)
+            AND boundary = 'administrative'
+            AND way && !bbox!
+        """
+
+    [tileset.layer.style]
+        type = "line"
+        minzoom = 5
+        maxzoom = 18
+        [tileset.layer.style.paint]
+        line-color = "rgb(230, 204, 207)"
+        line-opacity = 0.5
+        line-width = 1
+        line-dasharray = [2, 2]
+        
+    ######### BOUNDARY_COUNTRY
+    [[tileset.layer]]
+        name = "boundary_country"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POLYGON"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 0
+        maxzoom = 4
+        sql = """
+            SELECT name, way, boundary
+            FROM public.planet_osm_polygon
+            WHERE admin_level::INTEGER = 2
+            AND boundary = 'administrative'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            minzoom = 5
+            maxzoom = 18
+            type = "line"
+            [tileset.layer.style.paint]
+            line-color = "rgb(230, 204, 207)"
+            line-width =  1
+            line-dasharray = [2, 2]
+
+    ######### WATER_RIVER_NAME
+    [[tileset.layer]]
+        name = "water_river_name"
+        table_name = "planet_osm_line"
+        geometry_field = "way"
+        geometry_type = "LINESTRING"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 20
+        sql = """
+            SELECT name, waterway, way
+            FROM public.planet_osm_line
+            WHERE waterway in('river','stream','canal')
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 12
+            maxzoom = 20
+            filter = ["all"]
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                symbol-placement = "line"
+                visibility = "visible"
+                text-size = 12
+                symbol-spacing = 500
+            [tileset.layer.style.paint]
+                text-halo-color = "rgb(255, 255, 255)"
+                text-halo-width = 2   
+                text-color = "rgb(77, 89, 105)"
+
+    ######### PLACE_OTHER
+    [[tileset.layer]]
+        name = "place_other"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 14
+        maxzoom = 16
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place in('continent','hamlet','neighbourhood','isolated_dwelling')
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 14
+            maxzoom = 16
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                visibility = "visible"
+                text-size = 8
+                text-transform = "uppercase"
+                text-offset = [0.5, 0]
+                [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_SUBURB
+    [[tileset.layer]]
+        name = "place_suburb"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 16
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place = 'suburb'
+            AND way && !bbox! 
+            """
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 12
+            maxzoom = 16
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                text-size = 8
+                text-transform = "uppercase"
+                text-offset = [0.5, 0]
+                visibility = "visible"
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_VILLAGE
+    [[tileset.layer]]
+        name = "place_village"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 12
+        maxzoom = 16
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place = 'village'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 12
+            maxzoom = 16
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                text-justify = "center"
+                text-anchor = "center"
+                text-transform = "uppercase"
+                text-offset = [0.5, 0.2]
+                visibility = "visible"
+                text-size = 10
+                
+                [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_TOWN
+    [[tileset.layer]]
+        name = "place_town"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 9
+        maxzoom = 15
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place = 'town'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 9
+            maxzoom = 15
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                text-size = 10
+                text-justify = "center"
+                text-transform = "uppercase"
+                text-offset = [0.5, 0.2]
+                visibility = "visible"
+
+                [tileset.layer.style.layout.text-anchor]
+                stops = [{ in = 0, out = "center"}, { in = 8, out = "center"}]
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_CITY
+    [[tileset.layer]]
+        name = "place_city"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 7
+        maxzoom = 14
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place = 'city'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 7
+            maxzoom = 14
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                visibility = "visible"
+                text-transform = "uppercase"
+                text-size = 12
+                text-justify = "center"
+                text-offset = [0.5, 0.2]
+
+                [tileset.layer.style.layout.text-anchor]
+                stops = [{ in = 0, out = "center"}, { in = 8, out = "center"}]
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2           
+   
+    ######### PLACE_CAPITAL
+    [[tileset.layer]]
+        name = "place_capital"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 7
+        maxzoom = 14
+        sql = """
+            SELECT name, way, place
+            FROM public.planet_osm_point
+            WHERE place = 'capital'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 7
+            maxzoom = 14
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                visibility = "visible"
+                text-transform = "uppercase"
+                text-size = 14
+                text-justify = "center"
+                text-offset = [0.5, 0.2]
+
+                [tileset.layer.style.layout.text-anchor]
+                stops = [{ in = 0, out = "center"}, { in = 8, out = "center"}]
+
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_CITY_LARGE
+    [[tileset.layer]]
+        name = "place_city_large"
+        table_name = "planet_osm_point"
+        geometry_field = "way"
+        geometry_type = "POINT"
+
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 8
+        maxzoom = 14
+        sql = """
+            SELECT name, way, population 
+            FROM public.planet_osm_point 
+            WHERE place='city' 
+            AND   population::INTEGER >= 100000
+            AND way && !bbox!
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 8
+            maxzoom = 14
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                visibility = "visible"
+                text-transform = "uppercase"
+                text-size = 12
+                text-justify = "center"
+                text-offset = [0.5, 0.2]
+
+                [tileset.layer.style.layout.text-anchor]
+                stops = [{ in = 0, out = "center"}, { in = 8, out = "center"}]
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+                
+    ######### PLACE_DEPARTMENT
+    [[tileset.layer]]
+        name = "place_department"
+        table_name = "planet_osm_polygon"
+        geometry_field = "way"
+        geometry_type = "POINT"
+        make_valid = true
+        #simplify = true
+    [[tileset.layer.query]]
+        minzoom = 5
+        maxzoom = 7
+        sql = """
+            SELECT name, ST_Centroid(way) as way, boundary
+            FROM public.planet_osm_polygon
+            WHERE admin_level::INTEGER = 6
+            AND boundary = 'administrative'
+            AND way && !bbox! 
+            """
+
+        [tileset.layer.style]
+            type = "symbol"
+            minzoom = 5
+            maxzoom = 7
+
+            [tileset.layer.style.layout]
+                text-field = "{name}"
+                visibility = "visible"
+                text-transform = "uppercase"
+                text-justify = "center"
+                text-offset = [0.5, 0.2]
+                text-allow-overlap = true
+                [tileset.layer.style.layout.text-size]
+                stops = [{ in = 5, out = 10}, { in = 6, out = 14}]
+
+                [tileset.layer.style.layout.text-anchor]
+                stops = [{ in = 0, out = "center"}, { in = 8, out = "center"}]
+
+            [tileset.layer.style.paint]
+                text-color = "rgb(77, 89, 105)"
+                text-halo-color = "rgb(242,243,240)"
+                text-halo-width = 2
+
+[cache.file]
+    base = "/var/data/in/cache/mvtcache"
+
+[webserver]
+    # Bind address. Use 0.0.0.0 to listen on all adresses.
+    bind = "0.0.0.0"
+    port = 6767
+
+    

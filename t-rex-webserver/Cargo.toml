@@ -1,0 +1,30 @@
+[package]
+name = "t-rex-webserver"
+version = "0.9.9"
+description = "vector tile server"
+repository = "https://github.com/t-rex-tileserver/t-rex"
+readme = "../README.md"
+license = "MIT"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+build = "build.rs"
+edition = "2018"
+workspace = ".."
+
+[lib]
+doctest = false
+
+[dependencies]
+actix-web = "3.0"
+actix-cors = "0.5"
+actix-files = "0.5"
+futures = "0.3"
+clap = "2.33"
+log = "0.4"
+num_cpus = "1.13"
+open = "1.4"
+lazy_static = "1.4"
+serde = "1.0"
+serde_derive = "1.0"
+tile-grid = { path = "../tile-grid" }
+t-rex-core = { path = "../t-rex-core" }
+t-rex-service = { path = "../t-rex-service" }
